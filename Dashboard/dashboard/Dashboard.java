@@ -1,6 +1,6 @@
 package dashboard;
 
-import bussimulator.Runner;
+import bussimulator.RunnerFactory;
 import infoborden.Infobord;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -13,7 +13,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
-
 import mockDatabaseLogger.ArrivaLogger;
 
 public class Dashboard extends Application {
@@ -33,7 +32,8 @@ public class Dashboard extends Application {
 		});	    	
     }
 	private void startAlles() {
-		thread(new Runner(),false); 
+		RunnerFactory factory = new RunnerFactory();
+    	thread(factory.createRunner(),false);
 	}
 
 	@Override // Override the start method in the Application class

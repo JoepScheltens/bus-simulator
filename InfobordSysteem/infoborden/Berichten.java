@@ -1,8 +1,9 @@
 package infoborden;
 
+import org.codehaus.jackson.map.ObjectMapper;
+
 import java.io.IOException;
 import java.util.HashMap;
-import org.codehaus.jackson.map.ObjectMapper;
 public class Berichten {
 
 	private HashMap<String,Integer> laatsteBericht = new HashMap<String,Integer>();
@@ -31,25 +32,23 @@ public class Berichten {
 	}
 	
 	private void setRegels(){
-		String[] infoTekst={"--1--","--2--","--3--","--4--","leeg"};
-		int[] aankomsttijden=new int[5];
-		int totaalTijden=0;
+		String[] infoTekst = {"--1--","--2--","--3--","--4--","leeg"};
+		int[] aankomsttijden = new int[5];
 		int aantalRegels = 0;
 		if(!infoBordRegels.isEmpty()){
 			for(String busID: infoBordRegels.keySet()){
 				JSONBericht regel = infoBordRegels.get(busID);
-				int dezeTijd=regel.getAankomsttijd();
-				String dezeTekst=regel.getInfoRegel();
-				int plaats=aantalRegels;
-				for(int i=aantalRegels;i>0;i--){
-					if(dezeTijd<aankomsttijden[i-1]){
-						aankomsttijden[i]=aankomsttijden[i-1];
-						infoTekst[i]=infoTekst[i-1];
-						plaats=i-1;
-					}
+				int dezeTijd = regel.getAankomsttijd();
+				String dezeTekst = regel.getInfoRegel();
+				int plaats = aantalRegels;
+				while(plaats > 0 && dezeTijd < aankomsttijden[plaats - 1]){
+					aankomsttijden[plaats] = aankomsttijden[plaats - 1];
+					infoTekst[plaats] = infoTekst[plaats - 1];
+					plaats--;
 				}
-				aankomsttijden[plaats]=dezeTijd;
-				infoTekst[plaats]=dezeTekst;
+				plaats--;
+				aankomsttijden[plaats] = dezeTijd;
+				infoTekst[plaats] = dezeTekst;
 				if(aantalRegels<4){
 					aantalRegels++;
 				}

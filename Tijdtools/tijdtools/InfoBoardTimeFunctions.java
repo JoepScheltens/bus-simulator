@@ -1,9 +1,10 @@
 package tijdtools;
 
-import java.io.IOException;
 import org.codehaus.jackson.map.ObjectMapper;
 
-public class InfobordTijdFuncties {
+import java.io.IOException;
+
+public class InfoBoardTimeFunctions {
 
 	public Tijd getCentralTime()
     {
@@ -22,7 +23,7 @@ public class InfobordTijdFuncties {
 		int uur = counter/3600;
 		int minuten = (counter-3600*uur)/60;
 		int seconden = counter - 3600*uur - 60*minuten;
-		Tijd tijd=new Tijd(uur,minuten,seconden);
+		Tijd tijd = new Tijd(uur,minuten,seconden);
 		return tijd.toString();
 	}
 }

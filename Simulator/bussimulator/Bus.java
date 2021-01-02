@@ -6,65 +6,65 @@ import bussimulator.Halte.Positie;
 public class Bus{
 
 	private Bedrijven bedrijf;
-	private Lijnen lijn;
-	private int halteNummer;
+	private Lijnen busLine;
+	private int busStopNumber;
 	private int totVolgendeHalte;
-	private int richting;
-	private boolean bijHalte;
+	private int direction;
+	private boolean isAtBusStop;
 	private String busID;
 	
-	Bus(Lijnen lijn, Bedrijven bedrijf, int richting){
-		this.lijn=lijn;
+	Bus(Lijnen BusLine, Bedrijven bedrijf, int direction){
+		this.busLine = BusLine;
 		this.bedrijf=bedrijf;
-		this.richting=richting;
-		this.halteNummer = -1;
+		this.direction = direction;
+		this.busStopNumber = -1;
 		this.totVolgendeHalte = 0;
-		this.bijHalte = false;
+		this.isAtBusStop = false;
 		this.busID = "Niet gestart";
 	}
 	
 	public void setbusID(int starttijd){
-		this.busID=starttijd+lijn.name()+richting;
+		this.busID=starttijd+ busLine.name()+ direction;
 	}
 	
 	public void naarVolgendeHalte(){
-		Positie volgendeHalte = lijn.getHalte(halteNummer+richting).getPositie();
-		totVolgendeHalte = lijn.getHalte(halteNummer).afstand(volgendeHalte);
+		Positie volgendeHalte = busLine.getHalte(busStopNumber + direction).getPositie();
+		totVolgendeHalte = busLine.getHalte(busStopNumber).afstand(volgendeHalte);
 	}
-	
-	public boolean halteBereikt(){
-		halteNummer+=richting;
-		bijHalte=true;
-		if ((halteNummer>=lijn.getLengte()-1) || (halteNummer == 0)) {
+
+	public boolean endPointReached(){
+		if ((busStopNumber + direction >= busLine.getLengte()-1) || (busStopNumber == 0)) {
 			System.out.printf("Bus %s heeft eindpunt (halte %s, richting %d) bereikt.%n", 
-					lijn.name(), lijn.getHalte(halteNummer), lijn.getRichting(halteNummer)*richting);
+					busLine.name(), busLine.getHalte(busStopNumber), busLine.getRichting(busStopNumber)* direction);
 			return true;
 		}
 		else {
 			System.out.printf("Bus %s heeft halte %s, richting %d bereikt.%n", 
-					lijn.name(), lijn.getHalte(halteNummer), lijn.getRichting(halteNummer)*richting);		
-			naarVolgendeHalte();
-		}		
-		return false;
+					busLine.name(), busLine.getHalte(busStopNumber), busLine.getRichting(busStopNumber) * direction);
+			return false;
+		}
 	}
 	
 	public void start() {
-		halteNummer = (richting==1) ? 0 : lijn.getLengte()-1;
+		busStopNumber = (direction ==1) ? 0 : busLine.getLengte()-1;
 		System.out.printf("Bus %s is vertrokken van halte %s in richting %d.%n", 
-				lijn.name(), lijn.getHalte(halteNummer), lijn.getRichting(halteNummer)*richting);		
+				busLine.name(), busLine.getHalte(busStopNumber), busLine.getRichting(busStopNumber)* direction);
 		naarVolgendeHalte();
 	}
 	
 	public boolean move(){
 		boolean eindpuntBereikt = false;
-		bijHalte=false;
-		if (halteNummer == -1) {
+		isAtBusStop =false;
+
+		if (busStopNumber == -1) {
 			start();
 		}
 		else {
 			totVolgendeHalte--;
-			if (totVolgendeHalte==0){
-				eindpuntBereikt=halteBereikt();
+			if (totVolgendeHalte == 0){
+				busStopNumber += direction;
+				isAtBusStop = true;
+				eindpuntBereikt = endPointReached();
 			}
 		}
 		return eindpuntBereikt;
@@ -72,43 +72,37 @@ public class Bus{
 	
 	public void sendETAs(int nu){
 		int i=0;
-		Bericht bericht = new Bericht(lijn.name(),bedrijf.name(),busID,nu);
-		if (bijHalte) {
-			ETA eta = new ETA(lijn.getHalte(halteNummer).name(),lijn.getRichting(halteNummer)*richting,0);
-			bericht.ETAs.add(eta);
+		Message message = new Message(busLine.name(),bedrijf.name(),busID,nu);
+		if (isAtBusStop) {
+			ETA eta = new ETA(busLine.getHalte(busStopNumber).name(), busLine.getRichting(busStopNumber)* direction,0);
+			message.addETA(eta);
 		}
-		Positie eerstVolgende=lijn.getHalte(halteNummer+richting).getPositie();
+		Positie eerstVolgende= busLine.getHalte(busStopNumber + direction).getPositie();
 		int tijdNaarHalte=totVolgendeHalte+nu;
-		for (i = halteNummer+richting ; !(i>=lijn.getLengte()) && !(i < 0); i=i+richting ){
-			tijdNaarHalte+= lijn.getHalte(i).afstand(eerstVolgende);
-			ETA eta = new ETA(lijn.getHalte(i).name(), lijn.getRichting(i)*richting,tijdNaarHalte);
-//			System.out.println(bericht.lijnNaam + " naar halte" + eta.halteNaam + " t=" + tijdNaarHalte);
-			bericht.ETAs.add(eta);
-			eerstVolgende=lijn.getHalte(i).getPositie();
+		for (i = busStopNumber + direction; !(i>= busLine.getLengte()) && !(i < 0); i=i+ direction){
+			tijdNaarHalte+= busLine.getHalte(i).afstand(eerstVolgende);
+			ETA eta = new ETA(busLine.getHalte(i).name(), busLine.getRichting(i)* direction,tijdNaarHalte);
+			message.addETA(eta);
+			eerstVolgende= busLine.getHalte(i).getPositie();
 		}
-		bericht.eindpunt=lijn.getHalte(i-richting).name();
-		sendBericht(bericht);
+		message.setEindpunt(busLine.getHalte(i- direction).name());
+		sendBericht(message);
 	}
 	
 	public void sendLastETA(int nu){
-		Bericht bericht = new Bericht(lijn.name(),bedrijf.name(),busID,nu);
-		String eindpunt = lijn.getHalte(halteNummer).name();
-		ETA eta = new ETA(eindpunt,lijn.getRichting(halteNummer)*richting,0);
-		bericht.ETAs.add(eta);
-		bericht.eindpunt = eindpunt;
-		sendBericht(bericht);
+		Message message = new Message(busLine.name(),bedrijf.name(),busID,nu);
+		String eindpunt = busLine.getHalte(busStopNumber).name();
+		ETA eta = new ETA(eindpunt, busLine.getRichting(busStopNumber)* direction,0);
+		message.addETA(eta);
+		message.setEindpunt(eindpunt);
+		sendBericht(message);
 	}
 
-	public void sendBericht(Bericht bericht){
-		//TODO gebruik XStream om het binnengekomen bericht om te zetten 
-		//     naar een XML bestand (String)
+	public void sendBericht(Message message){
     	XStream xstream = new XStream();
-    	//TODO zorg er voor dat de XML-tags niet het volledige pad van de
-    	//     omgezettte klassen bevat
-		xstream.alias("Bericht", Bericht.class);
+		xstream.alias("Bericht", Message.class);
     	xstream.alias("ETA", ETA.class);
-    	//TODO maak de XML String aan en verstuur het bericht
-		String berichtXML = xstream.toXML(bericht);
+		String berichtXML = xstream.toXML(message);
     	Producer producer = new Producer();
     	producer.sendBericht(berichtXML);
 	}

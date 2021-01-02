@@ -1,5 +1,5 @@
 package bussimulator;
-import tijdtools.TijdFuncties;
+import tijdtools.SimulatorTimeFunctions;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +40,7 @@ public class Runner implements Runnable {
 			Bus bus = itr.next();
 			boolean eindpuntBereikt = bus.move();
 			if (eindpuntBereikt) {
+				bus.naarVolgendeHalte();
 				bus.sendLastETA(nu);
 				itr.remove();
 			}
@@ -68,44 +69,23 @@ public class Runner implements Runnable {
 		return Collections.min(busStart.keySet());
 	}
 
-//	@Override
-//	public void run() {
-//		int tijd=0;
-//		int volgende = initBussen();
-//		while ((volgende>=0) || !actieveBussen.isEmpty()) {
-//			System.out.println("De tijd is:" + tijd);
-//			volgende = (tijd==volgende) ? startBussen(tijd) : volgende;
-//			moveBussen(tijd);
-//			sendETAs(tijd);
-//			try {
-//				Thread.sleep(interval);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//			tijd++;
-//		}
-//	}
-//	Om de tijdsynchronisatie te gebruiken moet de onderstaande run() gebruikt worden
-
 	@Override
 	public void run() {
 		int tijd=0;
 		int counter=0;
-		TijdFuncties tijdFuncties = new TijdFuncties();
-		tijdFuncties.initSimulatorTijden(interval,syncInterval);
+		SimulatorTimeFunctions simulatorTimeFunctions = new SimulatorTimeFunctions();
+		simulatorTimeFunctions.initSimulatorTijden(interval,syncInterval);
 		int volgende = initBussen();
 		while ((volgende>=0) || !actieveBussen.isEmpty()) {
-			counter=tijdFuncties.getCounter();
-			tijd=tijdFuncties.getTijdCounter();
-			System.out.println("De tijd is:" + tijdFuncties.getSimulatorWeergaveTijd());
+			counter= simulatorTimeFunctions.getCounter();
+			tijd= simulatorTimeFunctions.getTijdCounter();
+			System.out.println("De tijd is:" + simulatorTimeFunctions.getSimulatorWeergaveTijd());
 			volgende = (counter==volgende) ? startBussen(counter) : volgende;
 			moveBussen(tijd);
 			sendETAs(tijd);
 			try {
-				tijdFuncties.simulatorStep();
+				simulatorTimeFunctions.simulatorStep();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

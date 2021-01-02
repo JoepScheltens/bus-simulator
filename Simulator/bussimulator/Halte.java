@@ -35,7 +35,7 @@ public enum Halte {
 	}
 	
 	int afstand(Positie vanaf) {
-		return 2*Math.abs(positie.x-vanaf.x)+Math.abs(positie.y-vanaf.y);
+		return 2*Math.abs(positie.x - vanaf.x)+Math.abs(positie.y-vanaf.y);
 	}
 	
 	Positie getPositie() {

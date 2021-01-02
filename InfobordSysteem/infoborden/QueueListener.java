@@ -7,13 +7,13 @@ import javax.jms.TextMessage;
 
 public class QueueListener implements MessageListener {
 	private String consumerName;
-	private Infobord infobord;
-	private Berichten berichten;
+	private InfoBoard infoBoard;
+	private InfoBoardMessageHandler infoBoardMessageHandler;
 	
-	public QueueListener(String consumerName, Infobord infobord, Berichten berichten) {
+	public QueueListener(String consumerName, InfoBoard infoBoard, InfoBoardMessageHandler infoBoardMessageHandler) {
 		this.consumerName = consumerName;
-		this.infobord=infobord;
-		this.berichten=berichten;
+		this.infoBoard = infoBoard;
+		this.infoBoardMessageHandler = infoBoardMessageHandler;
 	}
 
 	public void onMessage(Message message) {
@@ -22,8 +22,8 @@ public class QueueListener implements MessageListener {
 	            TextMessage textMessage = (TextMessage) message;
 				String text = textMessage.getText();
 				System.out.println("Consumer("+consumerName+")");
-				berichten.nieuwBericht(text);
-				infobord.updateBord();
+				infoBoardMessageHandler.nieuwBericht(text);
+				infoBoard.updateBord();
 			} else {
 	            System.out.println("Consumer("+consumerName+"): Received: " + message);
 	        }

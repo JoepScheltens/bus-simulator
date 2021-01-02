@@ -7,9 +7,7 @@ import javax.jms.*;
 
 public class Producer {
     private static String url = ActiveMQConnection.DEFAULT_BROKER_URL;
-//  TODO hier de naam van de destination invullen
     private static String subject = "QUEUE1";
-    
     private Session session;
     private Connection connection;
     private MessageProducer producer;
@@ -26,7 +24,6 @@ public class Producer {
     		e.printStackTrace();
     	}
     }
-        
     
     private void createConnection() throws JMSException {
        ConnectionFactory connectionFactory =
@@ -40,7 +37,6 @@ public class Producer {
     
     
     private void sendTextMessage(String themessage) throws JMSException {
-//		TODO maak de message aan
         TextMessage msg = session.createTextMessage(themessage);
         producer.send(msg);
     }    

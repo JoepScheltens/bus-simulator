@@ -1,9 +1,10 @@
 package tijdtools;
 
-import java.io.IOException;
 import com.thoughtworks.xstream.XStream;
 
-public class TijdFuncties {
+import java.io.IOException;
+
+public class SimulatorTimeFunctions {
 	private Tijd startTijd;
 	private Tijd simulatorTijd;
 	private Tijd verschil;
@@ -29,11 +30,11 @@ public class TijdFuncties {
     public int getCounter(){
     	return calculateCounter(simulatorTijd);
     }
-    
+
     public int getTijdCounter(){
-    	return calculateCounter(simulatorTijd)+calculateCounter(verschil);    	
+    	return calculateCounter(simulatorTijd)+calculateCounter(verschil);
     }
-    
+
     public void simulatorStep() throws InterruptedException{
 		Thread.sleep(interval);
 		simulatorTijd.increment(new Tijd(0,0,1));
@@ -62,7 +63,7 @@ public class TijdFuncties {
     	}
     	return new Tijd(urenVerschil, minutenVerschil, secondenVerschil);
     }
-    
+
     private void synchroniseTijd(){
     	Tijd huidigeTijd = getCentralTime();
     	System.out.println("De werkelijke tijd is nu: "+ huidigeTijd.toString());

@@ -1,9 +1,6 @@
 package dashboard;
 
-import bussimulator.RunnerFactory;
-import infoborden.Infobord;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -17,28 +14,9 @@ import mockDatabaseLogger.ArrivaLogger;
 
 public class Dashboard extends Application {
 
-    private void thread(Runnable runnable, boolean daemon) {
-		Thread brokerThread = new Thread(runnable);
-		brokerThread.setDaemon(daemon);
-		brokerThread.start();
-	}
-    
-    private void startBord(String halte, String richting) {
-		Infobord infobord = new Infobord(halte,richting);
-		Platform.runLater(new Runnable() {
-			public void run() {             
-				infobord.start(new Stage());
-			}
-		});	    	
-    }
-	private void startAlles() {
-		RunnerFactory factory = new RunnerFactory();
-    	thread(factory.createRunner(),false);
-	}
-
 	@Override // Override the start method in the Application class
 	public void start(Stage primaryStage) {
-		// Create a pane and set its properties
+		DashBoardRunners runners = new DashBoardRunners();
 		GridPane pane = new GridPane();
 		pane.setAlignment(Pos.CENTER);
 		pane.setPadding(new Insets(11.5, 12.5, 13.5, 14.5));
@@ -52,15 +30,15 @@ public class Dashboard extends Application {
 		pane.add(richting, 1, 1);
 		Button btBord = new Button("Start Bord");
 		btBord.setOnAction(e -> {
-			startBord(halteInput.getText(), richting.getText());
+			runners.startBord(halteInput.getText(), richting.getText());
 		});
 		Button btStart = new Button("Start");
 		btStart.setOnAction( e -> {
-			startAlles();
+			runners.startAlles();
 		});
 		Button btLogger = new Button("Start Logger");
 		btLogger.setOnAction( e -> {
-			thread(new ArrivaLogger(), false);
+			runners.thread(new ArrivaLogger(), false);
 		});
 		pane.add(btBord, 1, 5);
 		pane.add(btStart, 2, 5);

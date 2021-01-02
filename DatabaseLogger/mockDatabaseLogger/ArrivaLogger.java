@@ -7,46 +7,64 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import javax.jms.*;
 
 public class ArrivaLogger implements Runnable{
+	private boolean isReceivingNewMessages = true;
+	private int currentAmountOfMessages = 0;
+	private int currentAmountOfETAs = 0;
+	private MessageConsumer consumer;
+
 
 	@Override
 	public void run() {
-
 		try {
-			ActiveMQConnectionFactory connectionFactory = 
-					new ActiveMQConnectionFactory(ActiveMQConnection.DEFAULT_BROKER_URL);
-			Connection connection = connectionFactory.createConnection();
-			connection.start();
-			Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-			Destination destination = session.createQueue("ARRIVALOGGER");
-			MessageConsumer consumer = session.createConsumer(destination);
-			boolean newMessage=true;
-			int aantalBerichten=0;
-			int aantalETAs=0;
-			while (newMessage) {
-				Message message = consumer.receive(2000);
-				newMessage=false;
-				if (message instanceof TextMessage) {
-					TextMessage textMessage = (TextMessage) message;
-					String text1 = textMessage.getText();
-					String text = text1.substring(text1.indexOf("?>") + 3);
-					newMessage=true;
-					XStream xstream = new XStream();
-					xstream.alias("Bericht", Bericht.class);
-					xstream.alias("ETA", ETA.class);
-					Bericht bericht = (Bericht) xstream.fromXML(text);
-					aantalBerichten++;
-					aantalETAs+=bericht.ETAs.size();
-				} else {
-					System.out.println("Received: " + message);
-				}            	
-			}
-			consumer.close();
-			session.close();
-			connection.close();
-			System.out.println(aantalBerichten + " berichten met " + aantalETAs + " ETAs verwerkt.");
+			runArrivaLogger();
 		} catch (Exception e) {
 			System.out.println("Caught: " + e);
 			e.printStackTrace();
 		}
+	}
+
+	private void runArrivaLogger() throws JMSException {
+		setupConnection();
+		System.out.println(currentAmountOfMessages + " berichten met " + currentAmountOfETAs + " ETAs verwerkt.");
+	}
+
+	private void setupConnection() throws JMSException {
+		ActiveMQConnectionFactory connectionFactory =
+				new ActiveMQConnectionFactory(ActiveMQConnection.DEFAULT_BROKER_URL);
+		Connection connection = connectionFactory.createConnection();
+		connection.start();
+		Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		Destination destination = session.createQueue("ARRIVALOGGER");
+		consumer = session.createConsumer(destination);
+
+		handleNewMessages();
+
+		consumer.close();
+		session.close();
+		connection.close();
+	}
+
+	private void handleNewMessages() throws JMSException {
+		while (isReceivingNewMessages) {
+			Message message = consumer.receive(2000);
+			isReceivingNewMessages = false;
+			if (message instanceof TextMessage) {
+				messageFromXMLToBericht((TextMessage) message);
+			} else {
+				System.out.println("Received: " + message);
+			}
+		}
+	}
+
+	private void messageFromXMLToBericht(TextMessage message) throws JMSException {
+		String text = message.getText();
+		String textWithoutVersionNumber = text.substring(text.indexOf("?>") + 3);
+		isReceivingNewMessages = true;
+		XStream xstream = new XStream();
+		xstream.alias("Bericht", Bericht.class);
+		xstream.alias("ETA", ETA.class);
+		Bericht bericht = (Bericht) xstream.fromXML(textWithoutVersionNumber);
+		currentAmountOfMessages++;
+		currentAmountOfETAs+=bericht.ETAs.size();
 	}
 }
